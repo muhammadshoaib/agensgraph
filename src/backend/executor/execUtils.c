@@ -53,6 +53,7 @@
 #include "catalog/ag_label.h"
 #include "executor/executor.h"
 #include "executor/execPartition.h"
+#include "executor/nodeModifyTable.h"
 #include "jit/jit.h"
 #include "mb/pg_wchar.h"
 #include "miscadmin.h"
@@ -1287,8 +1288,9 @@ ExecGetExtraUpdatedCols(ResultRelInfo *relinfo, EState *estate)
 	{
 		ListCell   *lc;
 
-		/* Assert that ExecInitStoredGenerated has been called. */
-		Assert(relinfo->ri_GeneratedExprs != NULL);
+		/* In some code paths we can reach here before initializing the info */
+		if (relinfo->ri_GeneratedExprs == NULL)
+			ExecInitStoredGenerated(relinfo, estate, CMD_UPDATE);
 		foreach(lc, estate->es_resultrelinfo_extra)
 		{
 			ResultRelInfoExtra *rextra = (ResultRelInfoExtra *) lfirst(lc);
