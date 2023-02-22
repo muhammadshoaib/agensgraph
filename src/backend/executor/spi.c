@@ -1862,6 +1862,8 @@ SPI_result_code_string(int code)
 			return "SPI_OK_REL_UNREGISTER";
 		case SPI_OK_TD_REGISTER:
 			return "SPI_OK_TD_REGISTER";
+		case SPI_OK_TD_REGISTER:
+			return "SPI_OK_TD_REGISTER";
 		case SPI_OK_GRAPHWRITE:
 			return "SPI_OK_GRAPHWRITE";
 	}
