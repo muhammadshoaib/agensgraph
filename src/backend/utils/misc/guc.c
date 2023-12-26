@@ -7078,9 +7078,12 @@ set_config_option(const char *name, const char *value,
 	 * Other changes might need to affect other workers, so forbid them.
 	 */
 	if (IsInParallelMode() && changeVal && action != GUC_ACTION_SAVE)
+	{
 		ereport(elevel,
 				(errcode(ERRCODE_INVALID_TRANSACTION_STATE),
 				 errmsg("cannot set parameters during a parallel operation")));
+		return -1;
+	}
 
 	record = find_option(name, true, elevel);
 	if (record == NULL)
@@ -7170,6 +7173,10 @@ set_config_option(const char *name, const char *value,
 				 * backends.  This is a tad klugy, but necessary because we
 				 * don't re-read the config file during backend start.
 				 *
+				 * However, if changeVal is false then plow ahead anyway since
+				 * we are trying to find out if the value is potentially good,
+				 * not actually use it.
+				 *
 				 * In EXEC_BACKEND builds, this works differently: we load all
 				 * non-default settings from the CONFIG_EXEC_PARAMS file
 				 * during backend start.  In that case we must accept
@@ -7180,7 +7187,7 @@ set_config_option(const char *name, const char *value,
 				 * started it. is_reload will be true when either situation
 				 * applies.
 				 */
-				if (IsUnderPostmaster && !is_reload)
+				if (IsUnderPostmaster && changeVal && !is_reload)
 					return -1;
 			}
 			else if (context != PGC_POSTMASTER &&
